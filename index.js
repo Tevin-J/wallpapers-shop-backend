@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const {Sequelize, DataTypes} = require('sequelize')
 
 /*сделали настройку {} связанного с бд*/
@@ -13,6 +14,8 @@ const sequelize = new Sequelize('photos', 'root', '123456', {
 
 /*массив, хранящий фото из бд*/
 const photosArr = [];
+
+let ordersArr = [];
 
 /*создали модель фотографии на основе данных из бд*/
 const Photo = sequelize.define('photo', {
@@ -45,8 +48,39 @@ const Photo = sequelize.define('photo', {
     timestamps: false
 });
 
+const Order = sequelize.define('order', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        allowNull: false
+    },
+    title: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    url: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    price: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    popularity: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    }
+}, {
+    timestamps: false
+});
+
 /*создаем сервер*/
 const app = express();
+const jsonParser = express.json();
 
 /*синхронизировали модель с таблицей бд*/
 sequelize.sync()
@@ -65,13 +99,14 @@ Photo.findAll({raw: true})
     })
     .catch(err => console.log(err));
 
+Order.findAll({raw: true})
+    .then(orders => {
+        ordersArr.push(...orders)
+    })
+    .catch(err => console.log(err));
+
 /*внедряем middleware с настройками CORS*/
-app.use((req, res, next) => {
-    res.append('Access-Control-Allow-Origin', ['*']);
-    res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.append('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
+app.use(cors());
 
 app.get('/', (req, res) => {
     res.send('hello api')
@@ -88,15 +123,65 @@ app.get('/photos', (req, res) => {
         limit = 9
     }
     if (Number(page) === 1) {
-        res.send(photosArr.slice(0, limit))
+        res.json(JSON.stringify(photosArr.slice(0, limit)));
     } else {
-        res.send(photosArr.slice(limit * (page - 1), limit * page))
+        res.json(JSON.stringify(photosArr.slice(limit * (page - 1), limit * page)))
     }
 });
 
 /*передача последних фотографий*/
 app.get('/latest', (req, res) => {
-    res.send(photosArr.slice(-9))
+    res.json(JSON.stringify(photosArr.slice(-9)))
 });
 
+app.post('/orders', jsonParser, async (req, res) => {
+    let orders = req.body;
+    let filteredArr = ordersArr;
+    if (!ordersArr.length) {
+        orders.forEach(order => {
+            ordersArr.push(order)
+        })
+    } else {
+        let duplicate = 0;
+        for (let i = 0; i < orders.length; i++) {
+            for (let j = 0; j < ordersArr.length; j++) {
+                if (orders[i].id === ordersArr[j].id) {
+                    duplicate += 1
+                }
+            }
+            if (duplicate === 0) {
+                filteredArr.push(orders[i])
+            }
+        }
+        ordersArr = filteredArr
+    }
+    try {
+        let recordingOrders = await ordersArr.forEach(o => {
+            Order.create({id: o.id, title: o.title, description: o.description, url: o.url, price: o.price, popularity: o.popularity})
+        });
+        res.json(JSON.stringify(ordersArr))
+    } catch (e) {
+        console.error(e)
+    }
+});
 
+app.delete('/orders/remove/:id', jsonParser, async (req, res) => {
+    let id = Number(req.params.id);
+    try {
+        await Order.destroy({where: {id: id}});
+        ordersArr = await Order.findAll({raw: true});
+        res.json(JSON.stringify(ordersArr))
+    } catch (e) {
+        console.log(e)
+    }
+});
+
+app.delete('/orders/remove', jsonParser, async (req, res) => {
+    try {
+        await Order.destroy({truncate: true});
+        ordersArr = await Order.findAll({raw: true})
+        res.json(JSON.stringify(ordersArr))
+    } catch (e) {
+        console.log(e);
+    }
+})
