@@ -121,18 +121,27 @@ Order.findAll({raw: true})
     })
     .catch(err => console.log(err));
 
-Promo.findAll({raw: true})
-    .then(promo => {
-        promoValue = promo[0].title;
-    })
-    .catch(err => console.log(err));
-
 /*внедряем middleware с настройками CORS*/
 app.use(cors());
 
-app.get('/promo', jsonParser, (req, res) => {
+app.get('/promo', jsonParser, async (req, res) => {
+    await Promo.findAll({raw: true})
+        .then(promo => {
+            promoValue = promo[0].title;
+        })
+        .catch(err => console.log(err));
     res.json(promoValue)
 });
+
+app.put('/promo', jsonParser, async (req, res) => {
+    try {
+        await Promo.update({title: req.body.value}, {where: {id: 1}});
+        let newPromo = await Promo.findAll({raw: true});
+        res.json(JSON.stringify(newPromo[0].title))
+    } catch (e) {
+        console.log(e)
+    }
+})
 
 /*передача фотографий на фронт по запросу на '/photos' в зависимости от параметров запроса*/
 app.get('/photos', (req, res) => {
