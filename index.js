@@ -17,6 +17,8 @@ const photosArr = [];
 
 let ordersArr = [];
 
+let promoValue;
+
 /*создали модель фотографии на основе данных из бд*/
 const Photo = sequelize.define('photo', {
     id: {
@@ -78,6 +80,20 @@ const Order = sequelize.define('order', {
     timestamps: false
 });
 
+const Promo = sequelize.define('promo', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        allowNull: false
+    },
+    title: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    }
+}, {
+    timestamps: false
+});
+
 /*создаем сервер*/
 const app = express();
 const jsonParser = express.json();
@@ -105,11 +121,17 @@ Order.findAll({raw: true})
     })
     .catch(err => console.log(err));
 
+Promo.findAll({raw: true})
+    .then(promo => {
+        promoValue = promo[0].title;
+    })
+    .catch(err => console.log(err));
+
 /*внедряем middleware с настройками CORS*/
 app.use(cors());
 
-app.get('/', (req, res) => {
-    res.send('hello api')
+app.get('/promo', jsonParser, (req, res) => {
+    res.json(promoValue)
 });
 
 /*передача фотографий на фронт по запросу на '/photos' в зависимости от параметров запроса*/
@@ -157,7 +179,14 @@ app.post('/orders', jsonParser, async (req, res) => {
     }
     try {
         let recordingOrders = await ordersArr.forEach(o => {
-            Order.create({id: o.id, title: o.title, description: o.description, url: o.url, price: o.price, popularity: o.popularity})
+            Order.create({
+                id: o.id,
+                title: o.title,
+                description: o.description,
+                url: o.url,
+                price: o.price,
+                popularity: o.popularity
+            })
         });
         res.json(JSON.stringify(ordersArr))
     } catch (e) {
@@ -184,4 +213,16 @@ app.delete('/orders/remove', jsonParser, async (req, res) => {
     } catch (e) {
         console.log(e);
     }
-})
+});
+
+app.get('/purchase', jsonParser, async (req, res) => {
+    try {
+        await setTimeout(() => {
+            res.json(Math.round(Math.random()));
+        }, 2000);
+    } catch (e) {
+        console.log(e)
+    }
+});
+
+
