@@ -1,6 +1,6 @@
 import express from 'express';
 // @ts-ignore
-import * as cors from 'cors';
+import cors from 'cors';
 import { photos } from './routes/Photos';
 import { promo } from './routes/Promo';
 import { purchase } from './routes/Purchase';
@@ -14,3 +14,5 @@ app.use('/orders', orders);
 app.use('/photos', photos);
 app.use('/promo', promo);
 app.use('/purchase', purchase);
+
+app.get('/test', (req, res) => res.send('hello'));

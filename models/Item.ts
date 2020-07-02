@@ -5,14 +5,14 @@ import { Order } from './Order';
   timestamps: true
 })
 export class Item extends Model<Item> {
-  @Column
   @AllowNull(false)
   @PrimaryKey
+  @Column
     // null assertion '!' is required in strict mode
     id!: string;
 
-  @Column
   @AllowNull(false)
+  @Column
   url!: string;
 
   @ForeignKey(() => Order)

@@ -1,23 +1,26 @@
-// @ts-ignore
-import * as request from 'request';
 import { Request, Response } from 'express';
+import { get } from 'request';
 
 const baseUrl = 'https://api.unsplash.com/';
 let clientIdValue: string;
 
+function getDesiredProps(photos: any) {
+  // @ts-ignore
+  return photos.map(({ id, description, urls, likes }) => ({ id, description, urls, price: likes }));
+}
+
 // get list of photos from unsplash
 export async function getPhotos(req: Request, res: Response) {
   try {
-    let { page, perPage, clientId } = req.body;
-    page = !page ? 1 : page;
-    perPage = !perPage ? 30 : perPage;
-    clientId = 'Z2U-DGy55aYJGgH-2m8y7mNMlwXSEXw0tWsxs4k-snM';
-    clientIdValue = clientId;
-    request(`${baseUrl}photos?client_id=${clientId}&page=${page}&per_page=${perPage}`,
+    let page = !req.query.page ? 1 : +req.query.page;
+    let perPage = !req.query.perPage ? 30 : +req.query.perPage;
+    clientIdValue = 'Z2U-DGy55aYJGgH-2m8y7mNMlwXSEXw0tWsxs4k-snM';
+    get('photos',
+      { baseUrl, qs: { page, client_id: clientIdValue, per_page: perPage } },
       (err: any, response: any, body: any) => {
-        ++page;
+        let photos = getDesiredProps(body);
         if (err) return res.status(500).send({ message: err });
-        res.send(body);
+        res.send(photos);
       });
   } catch (e) {
     console.log(e.message);
@@ -28,14 +31,15 @@ export async function getPhotos(req: Request, res: Response) {
 // search photos by title
 export async function searchPhotosByTitle(req: Request, res: Response) {
   try {
-    let { query, page, perPage } = req.body;
-    page = !page ? 1 : page;
-    perPage = !perPage ? 30 : perPage;
-    request(`${baseUrl}/search/photos?client_id=${clientIdValue}&page=${page}&per_page=${perPage}&query=${query}`,
+    let query = req.query.term;
+    let page = !req.query.page ? 1 : +req.query.page;
+    let perPage = !req.query.perPage ? 30 : +req.query.perPage;
+    get('search/photos',
+      { baseUrl, qs: { page, query, client_id: clientIdValue, per_page: perPage } },
       (err: any, response: any, body: any) => {
-        ++page;
+        let photos = getDesiredProps(body);
         if (err) return res.status(500).send({ message: err });
-        res.send(body);
+        res.send(photos);
       });
   } catch (e) {
     res.status(400).send(e.message);
@@ -45,16 +49,17 @@ export async function searchPhotosByTitle(req: Request, res: Response) {
 // search photos by params
 export async function searchPhotosByParams(req: Request, res: Response) {
   try {
-    let { page, perPage, color, orientation } = req.body;
-    page = !page ? 1 : page;
-    perPage = !perPage ? 30 : perPage;
-    request(
-      `${baseUrl}/search/photos?client_id=${clientIdValue}&page=${page}&per_page=${perPage}
-      &color=${color}&orientation=${orientation}`,
+    let page = !req.query.page ? 1 : +req.query.page;
+    let perPage = !req.query.perPage ? 30 : +req.query.perPage;
+    let color = req.query.color;
+    let orientation = req.query.orientation;
+    get(
+      '/search/photos',
+      { baseUrl, qs: { page, color, orientation, client_id: clientIdValue, per_page: perPage } },
       (err: any, response: any, body: any) => {
-        ++page;
+        let photos = getDesiredProps(body);
         if (err) return res.status(500).send({ message: err });
-        res.send(body);
+        res.send(photos);
       });
   } catch (e) {
     res.status(400).send(e.message);

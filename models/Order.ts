@@ -12,12 +12,12 @@ export class Order extends Model<Order> {
   @Column
   id!: number;
 
-  @Column
   @AllowNull(false)
+  @Column
   cost!: number;
 
-  @Column
   @AllowNull(false)
+  @Column
   promo!: string;
 
   @HasMany(() => Item)
