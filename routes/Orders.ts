@@ -1,7 +1,7 @@
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 
-const orderController = require('../controllers/Order');
+import { createOrder } from '../controllers/Order';
 
 export const orders = Router();
 
-orders.post('/', orderController.createOrder);
+orders.post('/', createOrder);

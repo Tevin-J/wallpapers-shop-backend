@@ -4,11 +4,8 @@ import {
   Model,
   AutoIncrement,
   AllowNull,
-  PrimaryKey,
-  BelongsTo,
-  ForeignKey
+  PrimaryKey, Max, Min
 } from 'sequelize-typescript';
-import { Order } from './Order';
 
 @Table({
   timestamps: true
@@ -23,4 +20,10 @@ export class Promo extends Model<Promo> {
   @Column
   @AllowNull(false)
   title!: string;
+
+  @Column
+  @Min(5)
+  @Max(90)
+  @AllowNull(false)
+  discount!: number;
 }

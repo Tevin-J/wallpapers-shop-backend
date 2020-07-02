@@ -1,9 +1,12 @@
-import { Request, Response, Router } from 'express';
-import { Promo } from '../models/Promo';
+import { Router } from 'express';
 
 export const promo = Router();
-const promoController = require('../controllers/Promo');
+import { applyPromo, createNewPromo } from '../controllers/Promo';
 
-promo.get('/', promoController.getPromo);
+/*promo.get('/', promoController.getPromo);
 
-promo.put('/promo', promoController.setNewPromo);
+promo.put('/', promoController.setNewPromo);*/
+
+promo.post('/create', createNewPromo);
+
+promo.post('/apply', applyPromo);

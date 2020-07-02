@@ -1,12 +1,9 @@
 import { Request, Response } from 'express';
 
-// задержку 2 сек надо делать на фронте, чтоб не прерывать работу nodejs!!!
-
+// need to create a delay before making request to perform this function from front!
 export async function getPurchaseStatus(req: Request, res: Response) {
   try {
-    setTimeout(() => {
-      res.send(Math.round(Math.random()));
-    }, 2000);
+    res.send(Math.round(Math.random()));
   } catch (e) {
     console.log(e);
   }
