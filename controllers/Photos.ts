@@ -6,7 +6,9 @@ let clientIdValue: string;
 
 function getDesiredProps(photos: any) {
   // @ts-ignore
-  return photos.map(({ id, description, urls, likes }) => ({ id, description, urls, price: likes }));
+  return photos.map(({ id, description, urls, likes }) => (
+    { id, description, urlSmall: urls.small, urlRegular: urls.regular, price: likes }
+  ));
 }
 
 // get list of photos from unsplash
@@ -14,13 +16,13 @@ export async function getPhotos(req: Request, res: Response) {
   try {
     let page = !req.query.page ? 1 : +req.query.page;
     let perPage = !req.query.perPage ? 30 : +req.query.perPage;
-    clientIdValue = 'Z2U-DGy55aYJGgH-2m8y7mNMlwXSEXw0tWsxs4k-snM';
+    clientIdValue = String(req.query.clientId);
     get('photos',
       { baseUrl, qs: { page, client_id: clientIdValue, per_page: perPage } },
       (err: any, response: any, body: any) => {
-        let photos = getDesiredProps(body);
+        let photos = getDesiredProps(JSON.parse(body));
         if (err) return res.status(500).send({ message: err });
-        res.send(photos);
+        res.json(JSON.stringify(photos));
       });
   } catch (e) {
     console.log(e.message);
@@ -37,9 +39,10 @@ export async function searchPhotosByTitle(req: Request, res: Response) {
     get('search/photos',
       { baseUrl, qs: { page, query, client_id: clientIdValue, per_page: perPage } },
       (err: any, response: any, body: any) => {
-        let photos = getDesiredProps(body);
+        const dbPhotos = JSON.parse(body).results;
+        let photos = getDesiredProps(dbPhotos);
         if (err) return res.status(500).send({ message: err });
-        res.send(photos);
+        res.json(JSON.stringify(photos));
       });
   } catch (e) {
     res.status(400).send(e.message);
