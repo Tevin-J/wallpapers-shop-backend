@@ -5,7 +5,6 @@ const baseUrl = 'https://api.unsplash.com/';
 let clientIdValue: string;
 
 function getDesiredProps(photos: any) {
-  photos.log
   // @ts-ignore
   return photos.map(({ id, description, urls, likes }) => (
     { id, description, urlSmall: urls.small, urlRegular: urls.regular, price: likes }
@@ -60,19 +59,34 @@ export async function searchPhotosByParams(req: Request, res: Response) {
   try {
     let page = !req.query.page ? 1 : +req.query.page;
     let perPage = !req.query.perPage ? 30 : +req.query.perPage;
-    let color = req.query.color ? req.query.color : '';
-    let orientation = req.query.orientation ? req.query.orientation : '';
-    let query = req.query.term ? req.query.term : '';
-    let price = Number(req.query.price);
+    let color = req.query.color;
+    console.log(color);
+    let orientation = req.query.orientation;
+    console.log(orientation);
+    let query = req.query.term;
+    console.log(query);
+    let price: number = Number(req.query.price);
+    let qs;
+    if (query && !color && !orientation) {
+      qs = { page, query, client_id: clientIdValue, per_page: perPage };
+    } else if (query && color && orientation) {
+      qs = { page, query, color, orientation, client_id: clientIdValue, per_page: perPage };
+    } else if (query && color && !orientation) {
+      qs = { page, query, color, client_id: clientIdValue, per_page: perPage };
+    } else if (query && !color && orientation) {
+      qs = { page, query, orientation, client_id: clientIdValue, per_page: perPage };
+    }
     get(
       '/search/photos',
-      { baseUrl, qs: { page, query, color, orientation, client_id: clientIdValue, per_page: perPage } },
+      { baseUrl, qs },
       (err: any, response: any, body: any) => {
         const dbPhotos = JSON.parse(body).results;
         let photos = getDesiredProps(dbPhotos);
-        let filteredPhotos = filterByPrice(photos, price);
+        if (price) {
+          photos = filterByPrice(photos, price);
+        }
         if (err) return res.status(500).send({ message: err });
-        res.json(JSON.stringify(filteredPhotos));
+        res.json(JSON.stringify(photos));
       });
   } catch (e) {
     res.status(400).send(e.message);
