@@ -5,9 +5,11 @@ import { Item } from '../models/Item';
 export async function createOrder(req: Request, res: Response) {
   try {
     const { items, promo, cost } = req.body;
+    console.log(items, promo, cost);
 
-    // create model Promo and put cost and promo properties into it
+    // create model Order and put cost and promo properties into it
     const order: Order = await Order.create({ cost, promo });
+    console.log(12345);
 
     // map collection of items to put every item into created model Item, into pItems returns a promises
     // @ts-ignore
@@ -18,8 +20,6 @@ export async function createOrder(req: Request, res: Response) {
 
     // record dbItems into Order model by items key
     await order.$set('items', dbItems);
-
-    return order;
   } catch (e) {
     res.status(400).send(e.message);
   }
