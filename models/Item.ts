@@ -1,15 +1,29 @@
-import { Table, Column, Model, BelongsTo, AllowNull, PrimaryKey, ForeignKey } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  BelongsTo,
+  AllowNull,
+  PrimaryKey,
+  ForeignKey,
+  AutoIncrement
+} from 'sequelize-typescript';
 import { Order } from './Order';
 
 @Table({
   timestamps: true
 })
 export class Item extends Model<Item> {
-  @AllowNull(false)
   @PrimaryKey
+  @AutoIncrement
+  @AllowNull(false)
   @Column
     // null assertion '!' is required in strict mode
-    id!: string;
+    id!: number;
+
+  @AllowNull(false)
+  @Column
+  photoId!: string;
 
   @AllowNull(false)
   @Column
